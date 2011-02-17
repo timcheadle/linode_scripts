@@ -18,8 +18,8 @@
 #
 # Includes and user-defined fields
 #
-# <udf name="system_hostname" label="Hostname for system" default="fourspace" />
-# <udf name="primary_domain" label="Primary domain, used for virtual host setup" default="fourspace.com" />
+# <udf name="system_hostname" label="Hostname for system" default="" />
+# <udf name="primary_domain" label="Primary domain, used for virtual host setup" default="" />
 #
 # - User Security
 #   http://www.linode.com/stackscripts/view/?StackScriptID=165
