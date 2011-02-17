@@ -1,0 +1,8 @@
+These are scripts I use to manage my personal Linode servers. They may work for you too.
+
+bin/
+- Scripts used to manage the server once it's set up
+
+stackscripts/
+- Scripts used to set up an initial linode
+- Install these at https://manager.linode.com/stackscripts/index

@@ -1,0 +1,59 @@
+#!/bin/bash
+
+domain=$1;
+user=$2;
+
+if [[ "x$domain" == "x" || "x$user" == "x" ]]; then
+	echo "Usage: $(basename $0) <domain> <author_username>" >&2
+	exit 1
+fi
+
+# Don't overwrite existing domains
+if [ -e /etc/nginx/sites-available/$domain ]; then
+	echo "Error: vhost $domain already exists, aborting"
+	exit 1
+fi
+
+# Make sure we're running as root
+if [[ $EUID -ne 0 ]]; then
+	echo "Error: must run as root (try sudo)" >&2
+	exit 1
+fi
+
+# Make sure user exists
+if ! grep -q "^$user:" /etc/passwd; then
+	echo "Error: user "$user" doesn't exist in /etc/passwd" >&2
+	exit 1
+fi
+
+# Set up nginx virtual host
+mkdir -p /srv/www/$domain/public_html
+mkdir -p /srv/www/$domain/logs
+
+chgrp -R www-data /srv/www
+chown -R $user /srv/www/$domain
+chmod 770 /srv/www/$domain/logs
+
+cat > /etc/nginx/sites-available/$domain << EOF
+server {
+    listen 80;
+    server_name www.$domain $domain;
+    access_log /srv/www/$domain/logs/access.log;
+    error_log /srv/www/$domain/logs/error.log;
+
+    location / {
+        root  /srv/www/$domain/public_html;
+        index index.html index.htm index.php;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_pass   unix:/usr/local/var/run/php-fpm.sock;
+        fastcgi_index  index.php;
+        fastcgi_param  SCRIPT_FILENAME  /srv/www/$domain/public_html\$fastcgi_script_name;
+    }
+}
+EOF
+
+ln -s /etc/nginx/sites-available/$domain /etc/nginx/sites-enabled/
+/etc/init.d/nginx reload
